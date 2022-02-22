@@ -7,6 +7,7 @@ resource "aws_lb" "ecs_balancer" {
   internal = false
   load_balancer_type = "application"
   security_groups = [aws_security_group.sg.id]
+  subnets = [aws_subnet.sn1.id, aws_subnet.sn1.id]
 }
 
 resource "aws_lb_target_group" "ecs_target" {
@@ -14,10 +15,11 @@ resource "aws_lb_target_group" "ecs_target" {
   target_type = "alb"
   port        = 80
   protocol    = "TCP"
+  vpc_id = aws_vpc.vpc.id
   health_check {
-    interval = 120
-    matcher = "200-299"
-    path = "/"
+    interval = 30
+    # matcher = "200-299"
+    # path = "/"
     port = "80"
   }
 }
@@ -47,4 +49,25 @@ resource "aws_security_group" "sg" {
     cidr_blocks      = ["0.0.0.0/0"]
     ipv6_cidr_blocks = ["::/0"]
   }
+}
+
+resource "aws_vpc" "vpc" {
+  cidr_block = "10.0.0.0/22"
+  tags = {
+    Name = "wordpress-${random_string.install.id}"
+  }
+}
+
+resource "aws_internet_gateway" "gw" {
+  vpc_id = aws_vpc.vpc.id
+}
+
+resource "aws_subnet" "sn1" {
+  vpc_id = aws_vpc.vpc.id
+  cidr_block = "10.0.0.0/23"
+}
+
+resource "aws_subnet" "sn2" {
+  vpc_id = aws_vpc.vpc.id
+  cidr_block = "10.0.2.0/23"
 }

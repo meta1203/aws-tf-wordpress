@@ -11,8 +11,8 @@ resource "random_string" "install" {
 }
 
 
-resource "aws_iam_role" "ecs_role" {
-  name = "wordpress-${random_string.install.id}-ecsrole"
+resource "aws_iam_role" "ecs_task_role" {
+  name = "wordpress-${random_string.install.id}-ecstasksrole"
   assume_role_policy = jsonencode({
     Version = "2012-10-17"
     Statement = [

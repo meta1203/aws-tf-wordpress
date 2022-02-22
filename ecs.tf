@@ -20,7 +20,6 @@ resource "aws_ecs_cluster_capacity_providers" "wp_cluster" {
 resource "aws_ecs_service" "wp_service" {
   name = "wordpress-${random_string.install.id}"
   cluster = aws_ecs_cluster.wp_cluster.id
-  iam_role = aws_iam_role.ecs_role.arn
   task_definition = aws_ecs_task_definition.wp_task.arn
   force_new_deployment = true
   launch_type = "FARGATE"
@@ -41,6 +40,7 @@ resource "aws_ecs_task_definition" "wp_task" {
   cpu = var.ecs_cpu
   memory = var.ecs_mem
   network_mode = "awsvpc"
+  execution_role_arn = aws_iam_role.ecs_task_role.arn
   
   runtime_platform {
     operating_system_family = "LINUX"
@@ -49,10 +49,9 @@ resource "aws_ecs_task_definition" "wp_task" {
 
   volume {
     name = "wp-install"
-    host_path = "/var/www/html"
     efs_volume_configuration {
       file_system_id = aws_efs_file_system.wp_storage.id
-      
+      root_directory = "/var/www/html"
     }
   }
 
