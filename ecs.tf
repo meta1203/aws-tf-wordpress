@@ -32,6 +32,7 @@ resource "aws_ecs_service" "wp_service" {
     container_name = aws_ecs_task_definition.wp_task.family
     container_port = 80
   }
+  depends_on = [aws_lb.ecs_balancer, aws_lb_target_group.ecs_target]
 }
 
 resource "aws_ecs_task_definition" "wp_task" {

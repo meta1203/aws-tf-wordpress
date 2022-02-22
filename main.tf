@@ -29,7 +29,10 @@ resource "aws_iam_role" "ecs_task_role" {
   managed_policy_arns = ["arn:aws:iam::aws:policy/service-role/AmazonECSTaskExecutionRolePolicy"] # AWS managed ECS policy
 }
 
-# manually state versions due to permissions issues with the 4.x branch
+data "aws_availability_zones" "available" {
+  state = "available"
+}
+
 terraform {
   required_providers {
     random = {
@@ -38,7 +41,6 @@ terraform {
 
     aws = {
       source  = "hashicorp/aws"
-      # version = "= 3.72.0"
     }
   }
 
