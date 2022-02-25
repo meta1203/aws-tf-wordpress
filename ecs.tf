@@ -1,5 +1,14 @@
 resource "aws_ecs_cluster" "wp_cluster" {
   name = "wordpress-${random_string.install.id}"
+
+  configuration {
+    execute_command_configuration {
+      logging = "OVERRIDE"
+      log_configuration {
+	cloud_watch_log_group_name = aws_cloudwatch_log_group.wp_log.name
+      }
+    }
+  }
 }
 
 resource "aws_ecs_cluster_capacity_providers" "wp_cluster" {
@@ -27,12 +36,20 @@ resource "aws_ecs_service" "wp_service" {
   lifecycle {
     ignore_changes = [desired_count]
   }
+  
   load_balancer {
     target_group_arn = aws_lb_target_group.ecs_target.arn
     container_name = aws_ecs_task_definition.wp_task.family
     container_port = 80
   }
-  depends_on = [aws_lb.ecs_balancer, aws_lb_target_group.ecs_target]
+  
+  network_configuration {
+    subnets = aws_subnet.sn.*.id
+    security_groups = [aws_security_group.sg.id]
+    assign_public_ip = true
+  }
+  
+  depends_on = [aws_lb.ecs_balancer, aws_lb_target_group.ecs_target, aws_lb_listener.ecs_listener]
 }
 
 resource "aws_ecs_task_definition" "wp_task" {
@@ -60,6 +77,13 @@ resource "aws_ecs_task_definition" "wp_task" {
     name = "wordpress-${random_string.install.id}-task"
     image = "wordpress:latest"
     essential = true
+    environment = [{
+      WORDPRESS_DB_HOST = aws_rds_cluster.wp_db.endpoint
+      WORDPRESS_DB_USER = aws_rds_cluster.wp_db.master_username
+      WORDPRESS_DB_PASSWORD = aws_rds_cluster.wp_db.master_password
+      WORDPRESS_DB_NAME = aws_rds_cluster.wp_db.database_name
+      WORDPRESS_TABLE_PREFIX = "wp_"
+    }]
     portMappings = [{
       containerPort = 80
       hostPort = 80
@@ -80,13 +104,18 @@ resource "aws_appautoscaling_policy" "ecs_policy" {
     metric_aggregation_type = "Maximum"
 
     step_adjustment {
-      metric_interval_upper_bound = -20
+      metric_interval_upper_bound = -15
       scaling_adjustment          = -1
     }
 
     step_adjustment {
-      metric_interval_lower_bound = 0
-      metric_interval_upper_bound = 15
+      metric_interval_lower_bound = -15
+      metric_interval_upper_bound = 35
+      scaling_adjustment          = 0
+    }
+
+    step_adjustment {
+      metric_interval_lower_bound = 35
       scaling_adjustment          = 1
     }
   }

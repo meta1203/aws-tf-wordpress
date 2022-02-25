@@ -1,5 +1,5 @@
-variable "r53_id" {
-  description = "The Route 53 Hosted Zone ID"
+variable "r53_domain" {
+  description = "The Route 53 domain name"
   type = string
 }
 
@@ -11,7 +11,7 @@ variable "region" {
 
 variable "r53_subdomain" {
   description = "Subdomains to bind to"
-  type = set(string)
+  type = list(string)
   default = ["", "www."]
 }
 
