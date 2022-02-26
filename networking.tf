@@ -32,8 +32,10 @@ resource "aws_lb_target_group" "ecs_target" {
   port        = 80
   protocol    = "HTTP"
   vpc_id = aws_vpc.vpc.id
+
+  slow_start = 300
   health_check {
-    interval = 30
+    interval = 60
     matcher = "200-299"
     path = "/"
     port = "80"
@@ -97,6 +99,15 @@ resource "aws_security_group" "sg" {
     ipv6_cidr_blocks = ["::/0"]
   }
 
+  ingress {
+    description      = "MySQL"
+    from_port        = 3306
+    to_port          = 3306
+    protocol         = "tcp"
+    cidr_blocks      = ["0.0.0.0/0"]
+    ipv6_cidr_blocks = ["::/0"]
+  }
+
   egress {
     from_port        = 0
     to_port          = 0
@@ -113,6 +124,7 @@ resource "aws_security_group" "sg" {
 resource "aws_vpc" "vpc" {
   cidr_block = "10.0.0.0/20"
   assign_generated_ipv6_cidr_block = true
+  enable_dns_hostnames = true # ???
   
   tags = {
     Name = "wordpress-${random_string.install.id}"

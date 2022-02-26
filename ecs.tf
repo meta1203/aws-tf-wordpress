@@ -58,7 +58,8 @@ resource "aws_ecs_task_definition" "wp_task" {
   cpu = var.ecs_cpu
   memory = var.ecs_mem
   network_mode = "awsvpc"
-  execution_role_arn = aws_iam_role.ecs_task_role.arn
+  execution_role_arn = aws_iam_role.ecs_exec_role.arn
+  task_role_arn = aws_iam_role.ecs_task_role.arn
   
   runtime_platform {
     operating_system_family = "LINUX"
@@ -69,7 +70,7 @@ resource "aws_ecs_task_definition" "wp_task" {
     name = "wp-install"
     efs_volume_configuration {
       file_system_id = aws_efs_file_system.wp_storage.id
-      root_directory = "/var/www/html"
+      root_directory = "/"
     }
   }
 
@@ -77,16 +78,32 @@ resource "aws_ecs_task_definition" "wp_task" {
     name = "wordpress-${random_string.install.id}-task"
     image = "wordpress:latest"
     essential = true
+    
     environment = [{
-      WORDPRESS_DB_HOST = aws_rds_cluster.wp_db.endpoint
-      WORDPRESS_DB_USER = aws_rds_cluster.wp_db.master_username
-      WORDPRESS_DB_PASSWORD = aws_rds_cluster.wp_db.master_password
-      WORDPRESS_DB_NAME = aws_rds_cluster.wp_db.database_name
-      WORDPRESS_TABLE_PREFIX = "wp_"
+      name  = "WORDPRESS_DB_HOST"
+      value = aws_rds_cluster.wp_db.endpoint
+    }, {
+      name  = "WORDPRESS_DB_USER"
+      value = aws_rds_cluster.wp_db.master_username
+    }, {
+      name  = "WORDPRESS_DB_PASSWORD"
+      value = aws_rds_cluster.wp_db.master_password
+    }, {
+      name  = "WORDPRESS_DB_NAME"
+      value = aws_rds_cluster.wp_db.database_name
+    }, {
+      name  = "WORDPRESS_TABLE_PREFIX"
+      value = "wp_"
     }]
+    
     portMappings = [{
       containerPort = 80
       hostPort = 80
+    }]
+
+    mountPoints = [{
+      containerPath = "/var/www/html"
+      sourceVolume = "wp-install"
     }]
   }])
 }

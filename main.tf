@@ -18,8 +18,8 @@ resource "random_string" "pw" {
   special = true
 }
 
-resource "aws_iam_role" "ecs_task_role" {
-  name = "wordpress-${random_string.install.id}-ecstasksrole"
+resource "aws_iam_role" "ecs_exec_role" {
+  name = "wordpress-${random_string.install.id}-ecsexecrole"
   assume_role_policy = jsonencode({
     Version = "2012-10-17"
     Statement = [
@@ -36,8 +36,25 @@ resource "aws_iam_role" "ecs_task_role" {
   managed_policy_arns = ["arn:aws:iam::aws:policy/service-role/AmazonECSTaskExecutionRolePolicy"] # AWS managed ECS policy
 }
 
+resource "aws_iam_role" "ecs_task_role" {
+  name = "wordpress-${random_string.install.id}-ecstaskrole"
+  assume_role_policy = jsonencode({
+    Version = "2012-10-17"
+    Statement = [
+      {
+	Action = "sts:AssumeRole"
+	Effect = "Allow"
+	Sid    = ""
+	Principal = {
+	  Service = "ecs-tasks.amazonaws.com"
+	}
+      },
+    ]
+  })
+}
+
 resource "aws_iam_role_policy" "ecs_task_policy" {
-  name = "wordpress-${random_string.install.id}-ecspolicy"
+  name = "wordpress-${random_string.install.id}-ecstaskpolicy"
   role = aws_iam_role.ecs_task_role.id
 
   policy = jsonencode({
@@ -54,6 +71,7 @@ resource "aws_iam_role_policy" "ecs_task_policy" {
       {
         Action = [
 	  "logs:PutLogEvents",
+	  "logs:CreateLogStream",
         ]
         Effect   = "Allow"
         Resource = aws_cloudwatch_log_group.wp_log.arn
