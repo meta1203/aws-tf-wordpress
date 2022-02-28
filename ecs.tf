@@ -141,8 +141,8 @@ resource "aws_cloudwatch_metric_alarm" "wp_alarm_high" {
       stat = "Maximum"
 
       dimensions = {
-	LoadBalancer = aws_lb_listener.ecs_listener.arn
-	TargetGroup  = aws_lb_target_group.ecs_target.arn
+	ClusterName = aws_ecs_cluster.wp_cluster.name
+	ServiceName  = aws_ecs_service.wp_service.name
       }
     }
   }
@@ -156,8 +156,8 @@ resource "aws_cloudwatch_metric_alarm" "wp_alarm_high" {
       stat = "Maximum"
 
       dimensions = {
-	LoadBalancer = aws_lb_listener.ecs_listener.arn
-	TargetGroup  = aws_lb_target_group.ecs_target.arn
+	ClusterName = aws_ecs_cluster.wp_cluster.name
+	ServiceName  = aws_ecs_service.wp_service.name
       }
     }
   }
@@ -187,8 +187,8 @@ resource "aws_cloudwatch_metric_alarm" "wp_alarm_low" {
       stat = "Maximum"
 
       dimensions = {
-	LoadBalancer = aws_lb_listener.ecs_listener.arn
-	TargetGroup  = aws_lb_target_group.ecs_target.arn
+	ClusterName = aws_ecs_cluster.wp_cluster.name
+	ServiceName  = aws_ecs_service.wp_service.name
       }
     }
   }
@@ -202,8 +202,8 @@ resource "aws_cloudwatch_metric_alarm" "wp_alarm_low" {
       stat = "Maximum"
 
       dimensions = {
-	LoadBalancer = aws_lb_listener.ecs_listener.arn
-	TargetGroup  = aws_lb_target_group.ecs_target.arn
+	ClusterName = aws_ecs_cluster.wp_cluster.name
+	ServiceName  = aws_ecs_service.wp_service.name
       }
     }
   }
