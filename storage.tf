@@ -40,6 +40,10 @@ resource "aws_rds_cluster" "wp_db" {
   
   db_subnet_group_name    = aws_db_subnet_group.default.name
   vpc_security_group_ids  = [aws_security_group.sg.id]
+
+  scaling_configuration {
+    min_capacity = 1
+  }
 }
 
 resource "aws_db_subnet_group" "default" {
